@@ -16,9 +16,11 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 """
+from __future__ import absolute_import
+from itertools import chain
 import json
 import os
-from urllib import urlencode
+from .compat import urlencode, b2s
 import logging as log
 import base64
 from functools import partial
@@ -27,8 +29,7 @@ from tornado.httpclient import AsyncHTTPClient, HTTPClient
 import tornado
 import tornado.gen
 
-import resources
-import vimeoresponse
+from . import vimeoresponse
 
 log.basicConfig(level=log.WARNING)
 
@@ -53,7 +54,7 @@ class VimeoResource(object):
     """
     properties = None
 
-    def __init__(self, config, urlpath="", properties={}):
+    def __init__(self, config, urlpath="", properties=None):
         """
         Simply sets the config and the urlpath
 
@@ -67,7 +68,7 @@ class VimeoResource(object):
         self._singular = None
         self.config = config
         self.accept = "*"
-        self.properties = properties
+        self.properties = properties or {}
 
     def __getattr__(self, name):
         """
@@ -117,9 +118,9 @@ class VimeoResource(object):
         """
         return self._urlpath
 
-    def _build_parameters(self, query=None, query_fields=[], _filter=None,
+    def _build_parameters(self, query=None, query_fields=None, _filter=None,
                           sort=None, reverse=False, content_filter=None,
-                          page=0, per_page=0, capabilities={}):
+                          page=0, per_page=0, capabilities=None):
         """
         Monolithic handler for all query parameters allowed by the API.
         Sets the following querystring arguments, if applicable:
@@ -146,7 +147,7 @@ class VimeoResource(object):
         params = {}
         if not capabilities or capabilities['search']:
             params['query'] = query
-            params['query_fields'] = ' '.join(query_fields)
+            params['query_fields'] = ' '.join(query_fields or [])
         if not capabilities or capabilities['filter']:
             params['filter'] = _filter
         if not capabilities or capabilities['sort']:
@@ -174,8 +175,8 @@ class VimeoResource(object):
         """
         return getattr(self, identifier)
 
-    def _request_path(self, config, _callback=None, async=False, method="GET", endpoint='', body=None, querys={},
-                      url_override='', extra_headers={}):
+    def _request_path(self, config, _callback=None, async=False, method="GET", endpoint='', body=None, querys=None,
+                      url_override='', extra_headers=None):
         """
         Make a request to the Vimeo API
 
@@ -239,11 +240,11 @@ class VimeoResource(object):
         # to create the request URL
         else:
             url = "%s%s/%s" % (config['apiroot'], self._urlpath, endpoint.split('/')[-1])
-        url = self._append_querystring(url, querys)
+        url = self._append_querystring(url, querys or {})
 
         url,headers = self._set_auth_markers(url, headers)
         # add additional headers to the request if they were given
-        headers = dict(headers.items() + extra_headers.items())
+        headers = dict(chain(headers.items(), (extra_headers or {}).items()))
 
         log.info("%s %s" % (method, url))
         log.info(headers)
@@ -341,16 +342,16 @@ class VimeoResource(object):
         if self._should_stop_ioloop_on_finish:
             tornado.ioloop.IOLoop.instance().stop()
 
-    def _parse_response_body(self, body, headers={}):
+    def _parse_response_body(self, body, headers=None):
         """
         Utility: parse the body of a JSON response as a dictionary
 
         Args:
         body (String)   -- The JSON string to parse
         """
-        ret = {'headers': headers}
+        ret = {'headers': headers or {}}
         if body:
-            ret['body'] = json.loads(body)
+            ret['body'] = json.loads(b2s(body))
 
         return vimeoresponse.VimeoResponse(self, ret)
 
@@ -525,11 +526,12 @@ class SingularResource(VimeoResource):
         that a User object can call videos())
         """
         # The properties must be known in order for thie method to work
+        from .resources import mapper
         if name is '_should_stop_ioloop_on_finish':
             return
 
         if not self.properties:
-            raise ValueError, "Resource properties not defined"
+            raise ValueError("Resource properties not defined")
 
         def _make_requester(method, endpoint=""):
             def _do_request(data=None, _callback=None, async=False, **kwargs):
@@ -589,7 +591,7 @@ class SingularResource(VimeoResource):
                 # by creating a new instance of the subresource class and
                 # returning it
                 properties = self.properties[name]['subresources']
-            return resources.mapper[name](self.config, urlpath=self._urlpath, properties=properties)
+            return mapper[name](self.config, urlpath=self._urlpath, properties=properties)
 
         # If none of the above are true, just do a GET request for the resource
         return _make_requester("GET", endpoint=name)
@@ -758,10 +760,10 @@ class PostPatchResourceEditor(ResourceEditor):
     """
     Resource editor that supports POST and PATCH requests
     """
-    def post(self, params={}, _callback=None):
-        self._request_path(self.config, querys=params, _callback=_callback, async=async,
+    def post(self, params=None, _callback=None):
+        self._request_path(self.config, querys=params or {}, _callback=_callback, async=async,
                 method="POST")
 
-    def patch(self, name, params={}, _callback=None):
-        self._request_path(self.config, endpoint=name, querys=params, _callback=_callback, async=async,
+    def patch(self, name, params=None, _callback=None):
+        self._request_path(self.config, endpoint=name, querys=params or {}, _callback=_callback, async=async,
                 method="PATCH")

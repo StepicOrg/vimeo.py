@@ -17,11 +17,12 @@ specific language governing permissions and limitations
 under the license.
 """
 
+from __future__ import absolute_import
 import logging as log
 
-import resources
-from uploads import Uploader
-from auth import get_access_token
+
+from .uploads import Uploader
+from .auth import get_access_token
 
 
 class VimeoClient():
@@ -72,10 +73,12 @@ class VimeoClient():
             vimeo = VimeoClient("#####")
             vimeo.users()
         """
-        self.resource_roots = dict({
+        from . import resources
+        self.resource_roots = {
             "me": self._setup_me,
             "upload": self._setup_upload
-        }.items() + resources.mapper.items())
+        }
+        self.resource_roots.update(resources.mapper)
 
     def __dir__(self):
         return sorted(self.resource_roots.keys())

@@ -35,7 +35,7 @@ class VimeoResponse(dict):
             return
 
         if 'paging' in self['body']:
-            for name, url in self['body']['paging'].iteritems():
+            for name, url in self['body']['paging'].items():
                 if url:
                     self.__setattr__(name, partial(self._get_named_page, name))
 

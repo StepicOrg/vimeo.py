@@ -16,6 +16,7 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the license.
 """
+from __future__ import print_function
 import argparse
 
 import os,sys
@@ -23,6 +24,11 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0,parentdir)
 from vimeo.auth import get_auth_url, get_access_token
 
+try:
+    input = input
+except NameError:
+    # noinspection PyUnresolvedReferences
+    input = raw_input
 
 """
 Convenience for generating an access token.
@@ -53,11 +59,11 @@ if __name__ == "__main__":
         api_root += "com"
 
     def do_auth_flow(api_root, cid, secret, scopes, redirect):
-        print "Visit %s in a browser" % get_auth_url(api_root, cid, scopes, redirect)
-        auth_code = raw_input("Enter auth code: ")
+        print("Visit %s in a browser" % get_auth_url(api_root, cid, scopes, redirect))
+        auth_code = input("Enter auth code: ")
 
         return get_access_token(auth_code, api_root, cid, secret, redirect)
 
-    print "Access token is %s" % do_auth_flow(api_root, args.cid[0],
+    print("Access token is %s" % do_auth_flow(api_root, args.cid[0],
                                               args.secret[0], args.scopes,
-                                              args.redirect[0])
+                                              args.redirect[0]))

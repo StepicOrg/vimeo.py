@@ -16,7 +16,8 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the license.
 """
-from vimeoresource import VimeoResource, CallableVimeoResource, SingularResource
+from __future__ import absolute_import
+from .vimeoresource import VimeoResource, CallableVimeoResource, SingularResource
 
 
 """
@@ -32,16 +33,16 @@ description of what each key in the properties dictionary means.
 
 
 class Users(CallableVimeoResource):
-    def __init__(self, config, urlpath="", properties={}):
-        super(Users, self).__init__(config, urlpath, properties)
+    def __init__(self, config, urlpath="", properties=None):
+        super(Users, self).__init__(config, urlpath, properties or {})
         self._cat_url_path("/users")
         self._singular = User
         self.accept = 'person'
 
 
 class User(SingularResource):
-    def __init__(self, name, path, config, properties={}):
-        super(User, self).__init__(name, path, config, properties)
+    def __init__(self, name, path, config, properties=None):
+        super(User, self).__init__(name, path, config, properties or {})
         self.accept = 'person'
         self.merge_properties({
             'activities' : {'methods': ["GET"]},
@@ -83,16 +84,16 @@ class User(SingularResource):
 
 
 class Albums(VimeoResource):
-    def __init__(self, config, urlpath="", properties={}):
-        super(Albums, self).__init__(config, urlpath, properties)
+    def __init__(self, config, urlpath="", properties=None):
+        super(Albums, self).__init__(config, urlpath, properties or {})
         self._cat_url_path("/albums")
         self._singular = Album
         self.accept = 'album'
 
 
 class Album(SingularResource):
-    def __init__(self, name, path, config, properties={}):
-        super(Album, self).__init__(name, path, config, properties)
+    def __init__(self, name, path, config, properties=None):
+        super(Album, self).__init__(name, path, config, properties or {})
         self.accept = 'album'
         self.merge_properties({
             'videos': {'methods': ["GET", "PUT", "DELETE"],
@@ -102,15 +103,15 @@ class Album(SingularResource):
 
 
 class Categories(CallableVimeoResource):
-    def __init__(self, config, urlpath="", properties={}):
-        super(Categories, self).__init__(config, urlpath, properties)
+    def __init__(self, config, urlpath="", properties=None):
+        super(Categories, self).__init__(config, urlpath, properties or {})
         self._cat_url_path("/categories")
         self._singular = Category
 
 
 class Category(SingularResource):
-    def __init__(self, name, path, config, properties={}):
-        super(Category, self).__init__(name, path, config, properties)
+    def __init__(self, name, path, config, properties=None):
+        super(Category, self).__init__(name, path, config, properties or {})
         self.merge_properties({
             'channels': {'methods': ["GET"],
                          'accept': 'channel'},
@@ -125,16 +126,16 @@ class Category(SingularResource):
 
 
 class Channels(CallableVimeoResource):
-    def __init__(self, config, urlpath="", properties={}):
-        super(Channels, self).__init__(config, urlpath, properties)
+    def __init__(self, config, urlpath="", properties=None):
+        super(Channels, self).__init__(config, urlpath, properties or {})
         self._cat_url_path("/channels")
         self._singular = Channel
         self.accept = 'channel'
 
 
 class Channel(SingularResource):
-    def __init__(self, name, path, config, properties={}):
-        super(Channel, self).__init__(name, path, config, properties)
+    def __init__(self, name, path, config, properties=None):
+        super(Channel, self).__init__(name, path, config, properties or {})
         self.accept = 'channel'
         self.methods = ["GET", "PATCH", "DELETE"]
         self.merge_properties({
@@ -149,16 +150,16 @@ class Channel(SingularResource):
 
 
 class Groups(CallableVimeoResource):
-    def __init__(self, config, urlpath="", properties={}):
-        super(Groups, self).__init__(config, urlpath, properties)
+    def __init__(self, config, urlpath="", properties=None):
+        super(Groups, self).__init__(config, urlpath, properties or {})
         self._cat_url_path("/groups")
         self._singular = Group
         self.accept = 'group'
 
 
 class Group(SingularResource):
-    def __init__(self, name, path, config, properties={}):
-        super(Group, self).__init__(name, path, config, properties)
+    def __init__(self, name, path, config, properties=None):
+        super(Group, self).__init__(name, path, config, properties or {})
         self.accept = 'group'
         self.methods = ["GET", "PATCH", "DELETE"]
         self.merge_properties({
@@ -170,16 +171,16 @@ class Group(SingularResource):
 
 
 class Portfolios(CallableVimeoResource):
-    def __init__(self, config, urlpath="", properties={}):
-        super(Portfolios, self).__init__(config, urlpath, properties)
+    def __init__(self, config, urlpath="", properties=None):
+        super(Portfolios, self).__init__(config, urlpath, properties or {})
         self._cat_url_path("/portfolios")
         self._singular = Portfolio
         self.accept = 'portfolio'
 
 
 class Portfolio(SingularResource):
-    def __init__(self, name, path, config, properties={}):
-        super(Portfolio, self).__init__(name, path, config, properties)
+    def __init__(self, name, path, config, properties=None):
+        super(Portfolio, self).__init__(name, path, config, properties or {})
         self.accept = 'portfolio'
         self.merge_properties({
             'videos': {'methods': ["GET", "PUT", "DELETE"],
@@ -188,16 +189,16 @@ class Portfolio(SingularResource):
 
 
 class Videos(CallableVimeoResource):
-    def __init__(self, config, urlpath="", properties={}):
-        super(Videos, self).__init__(config, urlpath, properties)
+    def __init__(self, config, urlpath="", properties=None):
+        super(Videos, self).__init__(config, urlpath, properties or {})
         self._cat_url_path("/videos")
         self._singular = Video
         self.accept = 'video'
 
 
 class Video(SingularResource):
-    def __init__(self, name, path, config, properties={}):
-        super(Video, self).__init__(name, path, config, properties)
+    def __init__(self, name, path, config, properties=None):
+        super(Video, self).__init__(name, path, config, properties or {})
         self.accept = 'video'
         self.methods = ["GET", "PATCH", "DELETE"]
         self.merge_properties({

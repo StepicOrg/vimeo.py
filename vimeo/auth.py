@@ -17,12 +17,13 @@ specific language governing permissions and limitations
 under the license.
 """
 
-import urllib
+from __future__ import absolute_import
 import base64
 import json
 from copy import copy
 
 from tornado.httpclient import HTTPClient
+from .compat import urlencode, s2b, b2s
 
 
 def get_auth_url(api_root, cid, scopes, redirect):
@@ -87,23 +88,23 @@ def get_access_token(auth_code, api_root, cid, secret, redirect, dev=False):
     secret      - The client secret for the current app
     redirect    - The redirect URI for the app (see note)
     """
-    encoded = base64.b64encode("%s:%s" % (cid, secret))
+    encoded = base64.b64encode(s2b("%s:%s" % (cid, secret)))
 
     payload = {"grant_type": "authorization_code",
             "code": auth_code,
             "redirect_uri": redirect}
     headers = {"Accept": "application/vnd.vimeo.*+json; version=3.0",
-            "Authorization": "Basic %s" % encoded}
+            "Authorization": "Basic %s" % b2s(encoded)}
 
     response = HTTPClient().fetch("%s/oauth/access_token" % api_root,
                           method="POST",
                           headers=headers,
-                          body=urllib.urlencode(payload),
+                          body=urlencode(payload),
                           validate_cert=not dev)
     if response.error:
         raise ValueError(response.error)
     else:
-        return json.loads(response.body)['access_token']
+        return json.loads(b2s(response.body))['access_token']
 
 def get_client_credentials(client_id, client_secret, scopes=None, api_root='https://api.vimeo.com'):
     """
@@ -118,10 +119,10 @@ def get_client_credentials(client_id, client_secret, scopes=None, api_root='http
     api_root      - The root url of the API being used (in VimeoClient, accessible via
                   config['apiroot'])
     """
-    basic_auth = base64.b64encode("%s:%s" % (client_id, client_secret))
+    basic_auth = base64.b64encode(s2b("%s:%s" % (client_id, client_secret)))
     payload = {"grant_type": "client_credentials"}
     headers = {"Accept": "application/vnd.vimeo.*+json; version=3.0",
-            "Authorization": "Basic %s" % basic_auth}
+            "Authorization": "Basic %s" % b2s(basic_auth)}
 
     if scopes:
         payload['scope'] = scopes
@@ -129,9 +130,9 @@ def get_client_credentials(client_id, client_secret, scopes=None, api_root='http
     response = HTTPClient().fetch("%s/oauth/authorize/client" % api_root,
                           method="POST",
                           headers=headers,
-                          body=urllib.urlencode(payload))
+                          body=urlencode(payload))
 
     if response.error:
         raise ValueError(response.error)
 
-    return json.loads(response.body)['access_token']
+    return json.loads(b2s(response.body))['access_token']

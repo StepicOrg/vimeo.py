@@ -16,10 +16,11 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the license.
 """
+from __future__ import absolute_import
+from itertools import chain
 import logging as log
 import json
-from urllib import urlencode
-
+from .compat import urlencode, b2s
 from tornado.httpclient import HTTPClient, HTTPError
 
 
@@ -105,7 +106,7 @@ class Uploader():
         r = HTTPClient().fetch(self.config['apiroot'] + self.ticket_path, method="POST",
                 body=urlencode({'type': 'streaming'}), headers = self.standard_headers,
                 validate_cert=not self.config['dev'])
-        response = json.loads(r.body)
+        response = json.loads(b2s(r.body))
         return response['ticket_id'], response['upload_link_secure'], response['complete_uri']
 
     def upload_segment(self, upload_uri, _range, data, filetype):
@@ -130,7 +131,7 @@ class Uploader():
 
         log.info("Sending file of size %d" % len(data))
         log.info("Requesting %s" % upload_uri)
-        request_headers = dict(upload_headers.items() + self.standard_headers.items())
+        request_headers = dict(chain(upload_headers.items(), self.standard_headers.items()))
         r = HTTPClient().fetch(upload_uri, method="PUT",
                                body=data, headers=request_headers)
         log.info("Uploaded segment: status code %d" % r.code)
@@ -150,7 +151,7 @@ class Uploader():
         check_uri (String)  -- The URI to which to perform the PUT request
         """
         upload_check_headers = {'Content-Range': 'bytes */*'}
-        request_headers = dict(upload_check_headers.items() + self.standard_headers.items())
+        request_headers = dict(chain(upload_check_headers.items(), self.standard_headers.items()))
         try:
             HTTPClient().fetch(check_uri, method="PUT", body='', headers=request_headers)
         except HTTPError as e:
